@@ -1,5 +1,5 @@
 """
-This file contains constansts
+This file contains constants
 """
 
 NEAR_INTERVAL = '7 days'
