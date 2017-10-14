@@ -2,7 +2,7 @@
 this file is for the leaderboard ordering groups by amount of messages sent in an interval
 """
 
-def messages(near_interval, far_interval, lang, limit):
+def messages(near_interval, far_interval, lang, limit, bot_token):
 	query_near = """
 		SELECT
 			group_id
