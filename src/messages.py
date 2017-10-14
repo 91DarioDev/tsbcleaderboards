@@ -6,8 +6,8 @@ from src import dbwrapper as db
 def messages(near_interval, far_interval, lang, limit, bot_token):
 	query_near = """
 		SELECT
-			group_id
-			COUNT (msg_id) AS leaderboard,
+			group_id,
+			COUNT(msg_id) AS leaderboard,
 			s_ref.title,
 			s_ref.username,
 			s.nsfw
