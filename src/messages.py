@@ -1,7 +1,7 @@
 """
 this file is for the leaderboard ordering groups by amount of messages sent in an interval
 """
-import dbwrapper as db
+from src import dbwrapper as db
 
 def messages(near_interval, far_interval, lang, limit, bot_token):
 	query_near = """
@@ -25,7 +25,7 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		LIMIT %s
 		"""
 
-	near_stats  = db.query_r(query, near_interval, lang, limit)
+	near_stats  = db.query_r(query_near, near_interval, lang, limit)
 
 	query_far = """
 		SELECT
@@ -48,4 +48,6 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		LIMIT %s
 		"""
 
-	far_stats  = db.query_r(query, far_interval, near_interval, lang, limit)
+	far_stats  = db.query_r(query_near, far_interval, near_interval, lang, limit)
+
+	print(far_stats)
