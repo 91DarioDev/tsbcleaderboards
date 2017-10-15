@@ -1,3 +1,4 @@
 *.pyc
 /config/config.py
 /already_joined/messages_it.txt
+/already_joined/members_it.txt
