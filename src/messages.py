@@ -67,12 +67,23 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 							nsfw=i[4])
 		leaderboard_list.append(t_id)
 
+
+	out = []
 	count = 0
 	for i in far_stats:
 		count += 1
 		t_id = i[0]
-		t_id.last_value = i[1]
-		t_id.last_position = i[2]
+		try:
+			t_id.last_value = i[1]
+			t_id.last_position = count
+		except NameError:
+			t_id = Leaderboard(tg_id=i[0],
+								last_value=i[1],
+								last_position=count,
+								title=i[2],
+								username=i[3],
+								nsfw=i[4])
+			out.append(t_id)
 
 
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
@@ -102,6 +113,11 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 			)
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
-	print(message)
-	# to add all the ones out the leaderboard i check all the groups having a last value but
-	# no a new value
+	
+	message += "\n\nout:"
+	got_out = []
+	for i in out:
+		nsfw = "" if i.nsfw is False else c.NSFW_E
+		element = "{}@{}".format(nsfw, i.username)
+		got_out.append(element)
+	message += ' '.join(got_out)
