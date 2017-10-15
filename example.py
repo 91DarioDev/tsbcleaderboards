@@ -1,7 +1,7 @@
 """
 this is an example of how to launch a leaderboard
 """
-from src import messages
+from src.leaderboards import messages
 import config
 
 messages.messages(near_interval='7 days', 
