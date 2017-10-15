@@ -112,7 +112,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			else:
 				position = ""
 		message += "{}) {}@{}: {}{}\n".format(
-						i.position, i.nsfw, i.username, amount, position
+						i.position, i.nsfw, i.username, utils.sep(num=amount, lang=lang), position
 			)
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
