@@ -72,14 +72,30 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		t_id.last_position = i[2]
 
 
+	# create db if not exists
+	file_name = "already_joined/{}_{}.txt".format('messages', lang)
+	try:
+		file = open(file_name, 'r')
+		already_joined = file.read().splitlines()
+	except FileNotFoundError:
+		# create the file
+		file = open(file_name, 'w')
+		already_joined = []
+	finally:
+		file.close()
+
+
 	message = ""
 	for i in leaderboard_list:
-		i.nsfw = "" if nsfw is False else c.NSFW_E
+		i.nsfw = "" if i.nsfw is False else c.NSFW_E
 		if i.last_value is None:
 			amount = i.value
 			position = ""
-			# check new or back
-			# if new mark as entered
+			if str(i) in already_joined:
+				position = c.BACK_E
+			else:
+				position = c.NEW_E
+				already_joined.append(i)
 		else:
 			amount = "<b>"+str(i.value)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+str(i.value)+"</i>"
 			diff_pos = i.position - i.last_position
@@ -89,10 +105,9 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 				position = c.DOWN_POS_E+str(diff_pos)
 			else:
 				position = ""
-			position =  if diff_pos > 0
-		message += "{count}) {nsfw}@{username}: {amount}{position_back_new}".format(
-						i.position, nsfw, i.username, amount, position
+		message += "{}) {}@{}: {}{}".format(
+						i.position, i.nsfw, i.username, amount, position
 			)
-
+	# save the file with already_joined
 	# to add all the ones out the leaderboard i check all the groups having a last value but
 	# no a new value
