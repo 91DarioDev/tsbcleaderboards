@@ -68,7 +68,8 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 	for i in far_stats:
 		count += 1
 		t_id = i[0]
-		t_id = Leaderboard(last_value=i[1], last_position=i[2])
+		t_id.last_value = i[1]
+		t_id.last_position = i[2]
 
 
 	message = ""
@@ -78,6 +79,7 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 			amount = i.value
 			position = ""
 			# check new or back
+			# if new mark as entered
 		else:
 			amount = "<b>"+str(i.value)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+str(i.value)+"</i>"
 			diff_pos = i.position - i.last_position
@@ -92,3 +94,5 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 						i.position, nsfw, i.username, amount, position
 			)
 
+	# to add all the ones out the leaderboard i check all the groups having a last value but
+	# no a new value
