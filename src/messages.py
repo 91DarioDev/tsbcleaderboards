@@ -4,8 +4,10 @@ this file is for the leaderboard ordering groups by amount of messages sent in a
 from src import dbwrapper as db
 from src import constants as c
 from src.objects_leaderboard import Leaderboard
+import src.utils as utils
 
 def messages(near_interval, far_interval, lang, limit, bot_token):
+	name_type = 'messages'
 	query_near = """
 		SELECT
 			group_id,
@@ -57,7 +59,8 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 	for i in near_stats:
 		count += 1
 		t_id = i[0]
-		t_id = Leaderboard(value=i[1], 
+		t_id = Leaderboard(tg_id=i[0],
+							value=i[1], 
 							position=count, 
 							title=i[2], 
 							username=i[3], 
@@ -72,18 +75,8 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		t_id.last_position = i[2]
 
 
-	# create db if not exists
-	file_name = "already_joined/{}_{}.txt".format('messages', lang)
-	try:
-		file = open(file_name, 'r')
-		already_joined = file.read().splitlines()
-	except FileNotFoundError:
-		# create the file
-		file = open(file_name, 'w')
-		already_joined = []
-	finally:
-		file.close()
-
+	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
+	print(already_joined)
 
 	message = ""
 	for i in leaderboard_list:
@@ -91,11 +84,11 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		if i.last_value is None:
 			amount = i.value
 			position = ""
-			if str(i) in already_joined:
+			if str(i.tg_id) in already_joined:
 				position = c.BACK_E
 			else:
 				position = c.NEW_E
-				already_joined.append(i)
+				already_joined.append(str(i.tg_id))
 		else:
 			amount = "<b>"+str(i.value)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+str(i.value)+"</i>"
 			diff_pos = i.position - i.last_position
@@ -108,6 +101,8 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		message += "{}) {}@{}: {}{}".format(
 						i.position, i.nsfw, i.username, amount, position
 			)
+	print(already_joined)
+	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	# save the file with already_joined
 	# to add all the ones out the leaderboard i check all the groups having a last value but
 	# no a new value
