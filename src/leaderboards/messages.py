@@ -125,4 +125,4 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		got_out.append(element)
 	message += ' '.join(got_out)
 
-	Bot(config.BOT_TOKEN).sendMessage(chat_id=receiver, text=message)
+	Bot(config.BOT_TOKEN).sendMessage(chat_id=receiver, text=message, parse_mode='HTML')
