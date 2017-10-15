@@ -76,7 +76,6 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 
 
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
-	print(already_joined)
 
 	message = ""
 	for i in leaderboard_list:
@@ -101,8 +100,8 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		message += "{}) {}@{}: {}{}".format(
 						i.position, i.nsfw, i.username, amount, position
 			)
-	print(already_joined)
+
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
-	# save the file with already_joined
+	print(message)
 	# to add all the ones out the leaderboard i check all the groups having a last value but
 	# no a new value
