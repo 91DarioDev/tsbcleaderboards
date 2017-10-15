@@ -21,7 +21,7 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 			AND (s.banned_until IS NULL OR s.banned_until < now()) 
 			AND s.lang = %s
 		GROUP BY group_id, s_ref.title, s_ref.username, s.nsfw
-		ORDER BY leaderboard, group_id DESC
+		ORDER BY leaderboard DESC, group_id DESC
 		LIMIT %s
 		"""
 
@@ -44,7 +44,7 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 			AND (s.banned_until IS NULL OR s.banned_until < now()) 
 			AND s.lang = %s
 		GROUP BY group_id, s_ref.title, s_ref.username, s.nsfw
-		ORDER BY leaderboard, group_id DESC
+		ORDER BY leaderboard DESC, group_id DESC
 		LIMIT %s
 		"""
 
