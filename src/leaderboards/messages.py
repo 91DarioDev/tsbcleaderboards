@@ -4,9 +4,12 @@ this file is for the leaderboard ordering groups by amount of messages sent in a
 from src import dbwrapper as db
 from src import constants as c
 from src.objects_leaderboard import Leaderboard
-import src.utils as utils
+from src import utils
+from config import config
 
-def messages(near_interval, far_interval, lang, limit, bot_token):
+from telegram import Bot
+
+def messages(near_interval, far_interval, lang, limit, receiver):
 	name_type = 'messages'
 	query_near = """
 		SELECT
@@ -108,7 +111,7 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 				position = c.DOWN_POS_E+str(diff_pos)
 			else:
 				position = ""
-		message += "{}) {}@{}: {}{}".format(
+		message += "{}) {}@{}: {}{}\n".format(
 						i.position, i.nsfw, i.username, amount, position
 			)
 
@@ -121,3 +124,5 @@ def messages(near_interval, far_interval, lang, limit, bot_token):
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
 	message += ' '.join(got_out)
+
+	Bot(config.BOT_TOKEN).sendMessage(chat_id=receiver, text=message)
