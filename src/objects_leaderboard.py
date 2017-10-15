@@ -1,5 +1,6 @@
 class Leaderboard:
 	def __init__(self, 
+				tg_id,
 				value=None, 
 				position=None, 
 				last_value=None, 
@@ -8,7 +9,7 @@ class Leaderboard:
 				title=None,
 				username=None
 				):
-
+		self.tg_id = tg_id
 		self.value = value
 		self.position = position
 		self.last_value = last_value
