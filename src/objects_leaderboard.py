@@ -17,4 +17,9 @@ class Leaderboard:
 		self.nsfw = nsfw
 		self.title = title
 		self.username = username
-		self.diff_value = (value-last_value) if value is not None and last_value is not None else None
+
+	def set_diff_value(self):
+		if self.value is None or self.last_value is None:
+			self.diff_value = None
+		else:
+			self.diff_value = self.value - self.last_value
