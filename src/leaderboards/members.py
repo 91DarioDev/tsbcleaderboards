@@ -7,6 +7,8 @@ from src.objects_leaderboard import Leaderboard
 from src import utils
 from config import config
 
+from operator import attrgetter
+
 from telegram import Bot
 
 def members(far_interval, lang, limit, receiver):
@@ -90,53 +92,64 @@ def members(far_interval, lang, limit, receiver):
 
 	far_stats = db.query_r(query_far, far_interval, lang, limit)
 
+	far_list = []
+	count = 0
+	for i in far_stats:
+		count += 1
+		far_list.append([i[0], i[1], i[2], i[3], i[4], count])
+
+
 	leaderboard_list = []
 	count = 0
 	for i in near_stats:
 		count += 1
 		t_id = i[0]
-		t_id = Leaderboard(tg_id=i[0],
-							value=i[1], 
-							position=count, 
-							title=i[2], 
-							username=i[3], 
-							nsfw=i[4])
+		t_id = Leaderboard(
+			tg_id=i[0],
+			value=i[1], 
+			position=count, 
+			title=i[2], 
+			username=i[3], 
+			nsfw=i[4])
+		for sub_i in far_list:
+			if sub_i[0] == i[0]:
+				t_id.last_value = sub_i[1]
+				t_id.last_position = sub_i[5]
+				break
 		leaderboard_list.append(t_id)
 
 
 	out = []
-	count = 0
-	for i in far_stats:
-		count += 1
-		t_id = i[0]
-		try:
-			t_id.last_value = i[1]
-			t_id.last_position = count
-		except AttributeError:
-			t_id = Leaderboard(tg_id=i[0],
-								last_value=i[1],
-								last_position=count,
-								title=i[2],
-								username=i[3],
-								nsfw=i[4])
+	id_current = [i.tg_id for i in leaderboard_list]
+	for i in far_list:
+		if i[0] not in id_current:
+			t_id = Leaderboard(
+				tg_id=i[0],
+				last_value=i[1],
+				last_position=count,
+				title=i[2],
+				username=i[3],
+				nsfw=i[4])
 			out.append(t_id)
 
 
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
 
-	message = ""
+	message = utils.get_string(lang, "intro_members")
 	for i in leaderboard_list:
 		i.nsfw = "" if i.nsfw is False else c.NSFW_E
-		if i.last_value is None:
-			amount = i.value
-			position = ""
-			if str(i.tg_id) in already_joined:
-				position = c.BACK_E
-			else:
-				position = c.NEW_E
-				already_joined.append(str(i.tg_id))
+		
+		if str(i.tg_id) not in already_joined:
+			amount = utils.sep_l(i.value, lang)
+			position = c.NEW_E
+			already_joined.append(str(i.tg_id))
+		
+		elif i.last_value is None:
+			amount = utils.sep_l(i.value, lang)
+			position = c.BACK_E
+
 		else:
-			amount = "<b>"+str(i.value)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+str(i.value)+"</i>"
+			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.diff_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
 			diff_pos = i.position - i.last_position
 			if diff_pos > 0:
 				position = c.UP_POS_E+"+"+str(diff_pos)
@@ -144,18 +157,46 @@ def members(far_interval, lang, limit, receiver):
 				position = c.DOWN_POS_E+str(diff_pos)
 			else:
 				position = ""
+
 		message += "{}) {}@{}: {}{}\n".format(
-						i.position, i.nsfw, i.username, utils.sep_l(num=amount, locale=lang), position
-			)
+			i.position, 
+			i.nsfw, 
+			i.username, 
+			amount, 
+			position)
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\nout:"
+	message += "\n\n{}{}".format(c.BASKET_E, utils.get_string(lang, "out"))
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
-	message += ' '.join(got_out)
+	message += ', '.join(got_out)
 
-	Bot(config.BOT_TOKEN).sendMessage(chat_id=receiver, text=message, parse_mode='HTML')
+	lst = [i.position for i in leaderboard_list if i.diff_value is not None]
+	try:
+		most_increased = max(lst, key=attrgetter('diff_value'))
+	except ValueError:  # the list is empty
+		most_increased = None
+
+
+	if most_increased is not None:
+		message += '\n{}{}: {}{}'.format(
+			c.MOST_INCREASED_E,
+			get_string(lang, 'most_increased'),
+			"" if most_increased.nsfw is False else c.NSFW_E,
+			most_increased.username)
+
+
+	Bot(config.BOT_TOKEN).sendMessage(
+			chat_id=receiver, 
+			text=message, 
+			parse_mode='HTML',
+			disable_notification=True)
+	
+	Bot(config.BOT_TOKEN).sendDocument(
+			chat_id=config.ADMIN_ID, 
+			document=open(utils.get_name(name_type, lang), 'rb'),
+			disable_notification=True)
