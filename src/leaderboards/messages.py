@@ -5,6 +5,7 @@ from src import dbwrapper as db
 from src import constants as c
 from src.objects_leaderboard import Leaderboard
 from src import utils
+from resources.langs import en, it
 from config import config
 
 from telegram import Bot
@@ -98,7 +99,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
 
-	message = ""
+	message = it.intro
 	for i in leaderboard_list:
 		i.nsfw = "" if i.nsfw is False else c.NSFW_E
 		
@@ -131,7 +132,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\nout: "
+	message += "\n\n{}".format(en.out)
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
