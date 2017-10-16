@@ -7,8 +7,8 @@ class Leaderboard:
 				last_position=None,
 				nsfw=False,
 				title=None,
-				username=None
-				):
+				username=None):
+
 		self.tg_id = tg_id
 		self.value = value
 		self.position = position
@@ -17,3 +17,4 @@ class Leaderboard:
 		self.nsfw = nsfw
 		self.title = title
 		self.username = username
+		self.diff_value = (value-last_value) if value is not None and last_value is not None else None
