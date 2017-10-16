@@ -78,7 +78,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			if sub_i[0] == i[0]:
 				t_id.last_value = sub_i[1]
 				t_id.last_position = sub_i[5]
-				
+				break
 		leaderboard_list.append(t_id)
 
 
@@ -101,14 +101,16 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 	message = ""
 	for i in leaderboard_list:
 		i.nsfw = "" if i.nsfw is False else c.NSFW_E
-		if i.last_value is None:
-			amount = i.value
-			position = ""
-			if str(i.tg_id) in already_joined:
-				position = c.BACK_E
-			else:
-				position = c.NEW_E
-				already_joined.append(str(i.tg_id))
+		
+		if str(i.tg_id) not in already_joined:
+			amount = utils.sep_l(i.value, lang)
+			position = c.NEW_E
+			already_joined.append(str(i.tg_id))
+		
+		elif i.last_value is None:
+			amount = utils.sep_l(i.value, lang)
+			position = c.BACK_E
+
 		else:
 			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
 			diff_pos = i.position - i.last_position
@@ -118,13 +120,18 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 				position = c.DOWN_POS_E+str(diff_pos)
 			else:
 				position = ""
+
 		message += "{}) {}@{}: {}{}\n".format(
-						i.position, i.nsfw, i.username, amount, position
+			i.position, 
+			i.nsfw, 
+			i.username, 
+			amount, 
+			position
 			)
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\nout:"
+	message += "\n\nout: "
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
