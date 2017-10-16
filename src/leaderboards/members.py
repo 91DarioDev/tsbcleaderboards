@@ -116,6 +116,7 @@ def members(far_interval, lang, limit, receiver):
 				t_id.last_value = sub_i[1]
 				t_id.last_position = sub_i[5]
 				break
+		t_id.set_diff_value()
 		leaderboard_list.append(t_id)
 
 
@@ -175,7 +176,7 @@ def members(far_interval, lang, limit, receiver):
 		got_out.append(element)
 	message += ', '.join(got_out)
 
-	lst = [i.position for i in leaderboard_list if i.diff_value is not None]
+	lst = [i for i in leaderboard_list if i.diff_value is not None]
 	try:
 		most_increased = max(lst, key=attrgetter('diff_value'))
 	except ValueError:  # the list is empty
@@ -183,9 +184,9 @@ def members(far_interval, lang, limit, receiver):
 
 
 	if most_increased is not None:
-		message += '\n{}{}: {}{}'.format(
+		message += '\n{}{}: {}@{}'.format(
 			c.MOST_INCREASED_E,
-			get_string(lang, 'most_increased'),
+			utils.get_string(lang, 'most_increased'),
 			"" if most_increased.nsfw is False else c.NSFW_E,
 			most_increased.username)
 
