@@ -69,12 +69,13 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 	for i in near_stats:
 		count += 1
 		t_id = i[0]
-		t_id = Leaderboard(tg_id=i[0],
-							value=i[1], 
-							position=count, 
-							title=i[2], 
-							username=i[3], 
-							nsfw=i[4])
+		t_id = Leaderboard(
+			tg_id=i[0],
+			value=i[1], 
+			position=count, 
+			title=i[2], 
+			username=i[3], 
+			nsfw=i[4])
 		for sub_i in far_list:
 			if sub_i[0] == i[0]:
 				t_id.last_value = sub_i[1]
@@ -132,7 +133,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\n{}".format(utils.get_string(lang, "out"))
+	message += "\n\n{}{}".format(c.BASKET_E, utils.get_string(lang, "out"))
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
