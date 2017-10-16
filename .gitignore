@@ -1,3 +1,4 @@
 *.pyc
 /config/config.py
 /already_joined/*
+!already_joined/.gitkeep 
