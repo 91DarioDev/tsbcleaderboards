@@ -3,3 +3,5 @@ intro_messages = "Primi 50 gruppi che hanno scambiato più messaggi negli ultimi
 intro_members = "Primi 50 gruppi più numerosi.\n\n"
 
 out = "Usciti di classifica: "
+
+most_increased = "Il più cresciuto: "
