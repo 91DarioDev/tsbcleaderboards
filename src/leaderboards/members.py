@@ -112,7 +112,7 @@ def members(far_interval, lang, limit, receiver):
 		try:
 			t_id.last_value = i[1]
 			t_id.last_position = count
-		except NameError:
+		except AttributeError:
 			t_id = Leaderboard(tg_id=i[0],
 								last_value=i[1],
 								last_position=count,

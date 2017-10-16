@@ -56,6 +56,12 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		"""
 
 	far_stats = db.query_r(query_far, far_interval, near_interval, lang, limit)
+	far_list = []
+	count = 0
+	for i in far_stats:
+		count += 1
+		far_list.append([i[0], i[1], i[2], i[3], i[4], count])
+
 
 	leaderboard_list = []
 	count = 0
@@ -68,24 +74,25 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 							title=i[2], 
 							username=i[3], 
 							nsfw=i[4])
+		for sub_i in far_list:
+			if sub_i[0] == i[0]:
+				t_id.last_value = sub_i[1]
+				t_id.last_position = sub_i[5]
+				
 		leaderboard_list.append(t_id)
 
 
 	out = []
-	count = 0
-	for i in far_stats:
-		count += 1
-		t_id = i[0]
-		try:
-			t_id.last_value = i[1]
-			t_id.last_position = count
-		except NameError:
-			t_id = Leaderboard(tg_id=i[0],
-								last_value=i[1],
-								last_position=count,
-								title=i[2],
-								username=i[3],
-								nsfw=i[4])
+	id_current = [i.tg_id for i in leaderboard_list]
+	for i in far_list:
+		if i[0] not in id_current:
+			t_id = Leaderboard(
+				tg_id=i[0],
+				last_value=i[1],
+				last_position=count,
+				title=i[2],
+				username=i[3],
+				nsfw=i[4])
 			out.append(t_id)
 
 
@@ -103,7 +110,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 				position = c.NEW_E
 				already_joined.append(str(i.tg_id))
 		else:
-			amount = "<b>"+str(i.value)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+str(i.value)+"</i>"
+			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
 			diff_pos = i.position - i.last_position
 			if diff_pos > 0:
 				position = c.UP_POS_E+"+"+str(diff_pos)
@@ -112,7 +119,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			else:
 				position = ""
 		message += "{}) {}@{}: {}{}\n".format(
-						i.position, i.nsfw, i.username, utils.sep_l(num=amount, locale=lang), position
+						i.position, i.nsfw, i.username, amount, position
 			)
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
@@ -123,6 +130,6 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		nsfw = "" if i.nsfw is False else c.NSFW_E
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
-	message += ' '.join(got_out)
+	message += ', '.join(got_out)
 
 	Bot(config.BOT_TOKEN).sendMessage(chat_id=receiver, text=message, parse_mode='HTML')
