@@ -1,8 +1,17 @@
 import babel
 from babel.numbers import format_decimal
+from resources.langs import en, it
+
+lang_obj = {
+	"en": en,
+	"it": it
+}
+
 
 def get_name(name_type, lang):
 	return "already_joined/{}_{}.txt".format(name_type, lang)
+
+
 
 def get_already_joined(name_type, lang):
 	file_name = get_name(name_type, lang)
@@ -45,3 +54,23 @@ def sep_l(num, locale='en', none_is_zero=False):
 		return babel.numbers.format_decimal(num, locale=locale)
 	except babel.core.UnknownLocaleError:
 		return "{:,}".format(num)
+
+
+
+
+
+def get_string(lang, variable):
+	"""
+	returns the right string. example of usage:
+	print(get_string("en", "test"))
+	'en' is the language of the user returned from the db
+	'"test"' is the name of the variable in the relative file lang
+	"""
+
+	try:
+		string = getattr(lang_obj[lang], variable)
+	except AttributeError:
+		string = getattr(en, variable)
+	except KeyError:
+		string = getattr(en, variable)
+	return string
