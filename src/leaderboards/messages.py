@@ -100,7 +100,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
 
-	message = utils.get_string(lang, "intro")
+	message = utils.get_string(lang, "intro_messages")
 	for i in leaderboard_list:
 		i.nsfw = "" if i.nsfw is False else c.NSFW_E
 		
@@ -114,7 +114,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			position = c.BACK_E
 
 		else:
-			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.value - i.last_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
+			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.diff_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
 			diff_pos = i.position - i.last_position
 			if diff_pos > 0:
 				position = c.UP_POS_E+"+"+str(diff_pos)
