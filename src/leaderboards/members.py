@@ -168,13 +168,15 @@ def members(far_interval, lang, limit, receiver):
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\n{}{}".format(c.BASKET_E, utils.get_string(lang, "out"))
+	message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
-	message += ', '.join(got_out)
+	
+	if len(got_out) > 0:
+		message += ', '.join(got_out)
 
 	lst = [i for i in leaderboard_list if i.diff_value is not None]
 	try:
@@ -184,7 +186,7 @@ def members(far_interval, lang, limit, receiver):
 
 
 	if most_increased is not None:
-		message += '\n{}{}: {}@{}'.format(
+		message += '\n\n{}<b>{}</b>{}@{}'.format(
 			c.MOST_INCREASED_E,
 			utils.get_string(lang, 'most_increased'),
 			"" if most_increased.nsfw is False else c.NSFW_E,
