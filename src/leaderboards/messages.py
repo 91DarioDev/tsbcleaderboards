@@ -141,4 +141,13 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		got_out.append(element)
 	message += ', '.join(got_out)
 
-	Bot(config.BOT_TOKEN).sendMessage(chat_id=receiver, text=message, parse_mode='HTML')
+	Bot(config.BOT_TOKEN).sendMessage(
+			chat_id=receiver, 
+			text=message, 
+			parse_mode='HTML',
+			disable_notification=True)
+	
+	Bot(config.BOT_TOKEN).sendDocument(
+			chat_id=config.ADMIN_ID, 
+			document=open(utils.get_name(name_type, lang), 'rb'),
+			disable_notification=True)
