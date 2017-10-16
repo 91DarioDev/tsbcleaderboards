@@ -81,6 +81,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 				t_id.last_value = sub_i[1]
 				t_id.last_position = sub_i[5]
 				break
+		t_id.set_diff_value()
 		leaderboard_list.append(t_id)
 
 
