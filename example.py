@@ -26,12 +26,12 @@ from src.leaderboards import messages, members
 import config
 
 messages.messages(near_interval='7 days', 
-				far_interval='14 days', 
-				lang='it', 
-				limit=50,
-				receiver=1234567890)
+		far_interval='14 days', 
+		lang='it', 
+		limit=50,
+		receiver=1234567890)
 
 members.members(far_interval='7 days', 
-				lang='it', 
-				limit=50,
-				receiver=1234567890)
+		lang='it', 
+		limit=50,
+		receiver=1234567890)
