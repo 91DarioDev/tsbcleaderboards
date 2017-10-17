@@ -168,29 +168,35 @@ def members(far_interval, lang, limit, receiver):
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
-	
+
 	if len(got_out) > 0:
+		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
 
 	lst = [i for i in leaderboard_list if i.diff_value is not None]
 	try:
-		most_increased = max(lst, key=attrgetter('diff_value'))
+		max_value = max([e.diff_value for e in lst])
+		most_increased = [i for i in leaderboard_list if i.diff_value == max_value]
 	except ValueError:  # the list is empty
-		most_increased = None
+		most_increased = []
 
 
-	if most_increased is not None:
-		message += '\n\n{}<b>{}</b>{}@{}'.format(
-			c.MOST_INCREASED_E,
-			utils.get_string(lang, 'most_increased'),
-			"" if most_increased.nsfw is False else c.NSFW_E,
-			most_increased.username)
+	if len(most_increased) > 0:
+		strings = []
+		for i in most_increased:
+			string = "{}@{}".format(
+					"" if i.nsfw is False else c.NSFW_E,
+					i.username)
+			strings.append(string)
+		message += '\n\n{}<b>{}</b>'.format(
+				c.MOST_INCREASED_E, 
+				utils.get_string(lang, 'most_increased'))
+		message += ', '.join(strings)
 
 
 	Bot(config.BOT_TOKEN).sendMessage(
