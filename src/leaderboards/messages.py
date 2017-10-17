@@ -134,14 +134,14 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
-	message += "\n\n{}{}".format(c.BASKET_E, utils.get_string(lang, "out"))
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
-		
+
 	if len(got_out) > 0:
+		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
 
 	Bot(config.BOT_TOKEN).sendMessage(
