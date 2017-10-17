@@ -1,7 +1,7 @@
 # TSBCleaderboards
 ## An extension of [TopSupergroupsBot](https://github.com/91DarioDev/TopSupergroupsBot) to post leaderboards in channels
 
-**The goal of this repo is to get groups data from** [TopSupergroupsBot](https://github.com/91DarioDev/TopSupergroupsBot)**, create leaderboards, and post the message on a telegram channel.**
+**The goal of this repo is to get groups data from** [TopSupergroupsBot](https://github.com/91DarioDev/TopSupergroupsBot)**, create ad hoc channels leaderboards (short and with comparisons with the previous one), and post the message on a telegram channel.**
 
 ## How does it work?
 The `config.py` file contains some parameter that needs to be adjusted.
