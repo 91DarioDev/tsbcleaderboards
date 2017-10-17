@@ -140,7 +140,9 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		nsfw = "" if i.nsfw is False else c.NSFW_E
 		element = "{}@{}".format(nsfw, i.username)
 		got_out.append(element)
-	message += ', '.join(got_out)
+		
+	if len(got_out) > 0:
+		message += ', '.join(got_out)
 
 	Bot(config.BOT_TOKEN).sendMessage(
 			chat_id=receiver, 
