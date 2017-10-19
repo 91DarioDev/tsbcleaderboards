@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with TSBCleaderboards.  If not, see <http://www.gnu.org/licenses/>.
 
-
 intro_messages = "Primi 50 gruppi che hanno scambiato più messaggi negli ultimi 7 giorni.\n\n"
 
 intro_members = "Primi 50 gruppi più numerosi.\n\n"
@@ -24,3 +23,5 @@ intro_members = "Primi 50 gruppi più numerosi.\n\n"
 out = "Usciti di classifica: "
 
 most_increased = "Il più cresciuto: "
+
+most_incr_percent = "Il più cresciuto rispetto al vecchio valore: "

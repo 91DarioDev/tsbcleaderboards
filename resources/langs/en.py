@@ -24,3 +24,5 @@ intro_members = "First 50 groups having more users.\n\n"
 out = "Went out of the leaderboard: "
 
 most_increased = "Most increased: "
+
+most_incr_percent = "Most increased in percent compared to the old value: "

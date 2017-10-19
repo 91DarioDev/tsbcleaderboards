@@ -218,11 +218,13 @@ def members(far_interval, lang, limit, receiver):
 		message += ', '.join(got_out)
 
 
+	lst = [i for i in leaderboard_list if i.diff_value is not None]
+
 	#################
 	# MOST INCREASED
 	#################
 
-	lst = [i for i in leaderboard_list if i.diff_value is not None]
+	
 	try:
 		max_value = max([e.diff_value for e in lst])
 		most_increased = [i for i in leaderboard_list if i.diff_value == max_value]
@@ -233,14 +235,44 @@ def members(far_interval, lang, limit, receiver):
 	if len(most_increased) > 0:
 		strings = []
 		for i in most_increased:
-			string = "{}@{}".format(
+			string = "{}@{}({})".format(
 					"" if i.nsfw is False else c.NSFW_E,
-					i.username)
+					i.username,
+					i.diff_value)
 			strings.append(string)
 		message += '\n\n{}<b>{}</b>'.format(
 				c.MOST_INCREASED_E, 
 				utils.get_string(lang, 'most_increased'))
 		message += ', '.join(strings)
+
+	
+
+	##########################
+	# MOST INCREASED PERCENT
+	##########################
+
+	try:
+		max_value = max([e.diff_percent for e in lst])
+		most_incr_percent = [i for i in leaderboard_list if i.diff_percent == max_value]
+	except ValueError:
+		most_incr_percent = []
+
+	if len(most_incr_percent) > 0:
+		strings = []
+		for i in most_incr_percent:
+			string = "{}@{}({}%)".format(
+					"" if i.nsfw is False else c.NSFW_E,
+					i.username,
+					i.diff_percent)
+			strings.append(string)
+		message += '\n\n{}<b>{}</b>'.format(
+				c.MOST_INCR_PERCENT_E, 
+				utils.get_string(lang, 'most_incr_percent'))
+		message += ', '.join(strings)
+
+
+
+
 
 	#################
 	# SEND MESSAGE

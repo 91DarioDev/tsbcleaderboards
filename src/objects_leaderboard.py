@@ -45,4 +45,4 @@ class Leaderboard:
 			self.diff_percent = None
 		else:
 			self.diff_value = self.value - self.last_value
-			self.diff_percent = (self.value-self.last_value)*100/last_value
+			self.diff_percent = (self.value-self.last_value)*100/self.last_value
