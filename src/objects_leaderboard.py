@@ -42,5 +42,7 @@ class Leaderboard:
 	def set_diff_value(self):
 		if self.value is None or self.last_value is None:
 			self.diff_value = None
+			self.diff_percent = None
 		else:
 			self.diff_value = self.value - self.last_value
+			self.diff_percent = (self.value-self.last_value)*100/last_value
