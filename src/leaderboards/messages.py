@@ -54,6 +54,11 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		LIMIT %s
 		"""
 
+
+	#####################
+	#  EXTRACTING DATA
+	#####################
+
 	near_stats  = db.query_r(query_near, near_interval, lang, limit)
 
 	query_far = """
@@ -119,8 +124,14 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 				nsfw=i[4])
 			out.append(t_id)
 
-
+	# GET LIST OF ALREADY JOINED
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
+
+
+	#####################
+	# CREATING THE TEXT
+	#####################
+
 
 	message = utils.get_string(lang, "intro_messages")
 	for i in leaderboard_list:
@@ -153,8 +164,15 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			position
 			)
 
+
+	# SAVE NEW ALREADY JOINED LIST
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
+
+	###############
+	#   GOT OUT
+	###############
+
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
@@ -165,11 +183,21 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
 
+
+	#################
+	# SEND MESSAGE
+	#################
+
 	Bot(config.BOT_TOKEN).sendMessage(
 			chat_id=receiver, 
 			text=message, 
 			parse_mode='HTML',
 			disable_notification=True)
+	
+
+	###############
+	# SEND BACKUP
+	###############
 	
 	Bot(config.BOT_TOKEN).sendDocument(
 			chat_id=config.ADMIN_ID, 

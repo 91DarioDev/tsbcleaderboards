@@ -112,6 +112,11 @@ def members(far_interval, lang, limit, receiver):
 		LIMIT %s
 		"""
 
+	#####################
+	#  EXTRACTING DATA
+	#####################
+
+
 	far_stats = db.query_r(query_far, far_interval, lang, limit)
 
 	far_list = []
@@ -156,7 +161,12 @@ def members(far_interval, lang, limit, receiver):
 			out.append(t_id)
 
 
+	# GET LIST OF ALREADY JOINED
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
+
+	#####################
+	# CREATING THE TEXT
+	#####################
 
 	message = utils.get_string(lang, "intro_members")
 	for i in leaderboard_list:
@@ -188,8 +198,15 @@ def members(far_interval, lang, limit, receiver):
 			amount, 
 			position)
 
+
+	# SAVE NEW ALREADY JOINED LIST
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
 	
+
+	###############
+	#   GOT OUT
+	###############
+
 	got_out = []
 	for i in out:
 		nsfw = "" if i.nsfw is False else c.NSFW_E
@@ -199,6 +216,11 @@ def members(far_interval, lang, limit, receiver):
 	if len(got_out) > 0:
 		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
+
+
+	#################
+	# MOST INCREASED
+	#################
 
 	lst = [i for i in leaderboard_list if i.diff_value is not None]
 	try:
@@ -220,6 +242,9 @@ def members(far_interval, lang, limit, receiver):
 				utils.get_string(lang, 'most_increased'))
 		message += ', '.join(strings)
 
+	#################
+	# SEND MESSAGE
+	#################
 
 	Bot(config.BOT_TOKEN).sendMessage(
 			chat_id=receiver, 
@@ -227,6 +252,11 @@ def members(far_interval, lang, limit, receiver):
 			parse_mode='HTML',
 			disable_notification=True)
 	
+
+	###############
+	# SEND BACKUP
+	###############
+
 	Bot(config.BOT_TOKEN).sendDocument(
 			chat_id=config.ADMIN_ID, 
 			document=open(utils.get_name(name_type, lang), 'rb'),
