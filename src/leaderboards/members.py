@@ -238,7 +238,7 @@ def members(far_interval, lang, limit, receiver):
 			string = "{}@{}({})".format(
 					"" if i.nsfw is False else c.NSFW_E,
 					i.username,
-					i.diff_value)
+					utils.sep_l(i.diff_value, lang))
 			strings.append(string)
 		message += '\n\n{}<b>{}</b>'.format(
 				c.MOST_INCREASED_E, 
@@ -263,7 +263,7 @@ def members(far_interval, lang, limit, receiver):
 			string = "{}@{}({}%)".format(
 					"" if i.nsfw is False else c.NSFW_E,
 					i.username,
-					i.diff_percent)
+					round(i.diff_percent, 2))
 			strings.append(string)
 		message += '\n\n{}<b>{}</b>'.format(
 				c.MOST_INCR_PERCENT_E, 
