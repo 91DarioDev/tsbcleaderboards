@@ -59,7 +59,7 @@ def save_already_joined(name_type, lang, to_save):
 
 def sep(num, none_is_zero=False):
 	if num is None:
-		return 0 if none_is_zero is False else None
+		return 0 if none_is_zero is True else None
 	return "{:,}".format(num)
 
 
