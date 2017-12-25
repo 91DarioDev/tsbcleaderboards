@@ -36,80 +36,57 @@ from telegram import Bot
 def members(far_interval, lang, limit, receiver):
 	name_type = 'members'
 	query_near = """
-		SELECT 
-			m.group_id,
-			m.amount, 
-			s_ref.title, 
-			s_ref.username, 
-			s.nsfw
-		FROM
-		-- Window function to get only de last_date:
-		    (
-			SELECT 
-				last_members.group_id,
-				last_members.amount
-			FROM
-			    (
-			    SELECT 
-				    *,
-				    ROW_NUMBER() 
-				  	OVER (
-				    PARTITION BY group_id
-				    ORDER BY updated_date DESC) AS row 
-				FROM members
-			) AS last_members
-			WHERE last_members.row=1
-			) AS m
-		-- Joins with other tables
-		LEFT JOIN supergroups AS s
-		ON m.group_id = s.group_id
-		LEFT JOIN supergroups_ref AS s_ref
-		ON s.group_id = s_ref.group_id
-		WHERE 
-			(s.banned_until IS NULL OR s.banned_until < now()) 
-			AND lang = %s
-		ORDER BY m.amount DESC, m.group_id DESC
-		LIMIT %s
+        SELECT 
+            members.*,  
+            supergroups_ref.title, 
+            supergroups_ref.username, 
+            extract(epoch from supergroups.joined_the_bot at time zone 'utc') AS dt,
+            supergroups.nsfw,
+            RANK() OVER (PARTITION BY supergroups.lang ORDER BY members.amount DESC)
+        FROM
+        -- Window function to get only de last_date:
+            (SELECT last_members.group_id,last_members.amount
+            FROM
+            (SELECT *, ROW_NUMBER() OVER (PARTITION BY group_id
+            ORDER BY updated_date DESC) AS row FROM members) AS last_members
+            WHERE last_members.row=1) AS members
+        -- Joins with other tables
+        LEFT JOIN supergroups
+        ON members.group_id = supergroups.group_id
+        LEFT JOIN supergroups_ref 
+        ON supergroups.group_id = supergroups_ref.group_id
+        WHERE (supergroups.banned_until IS NULL OR supergroups.banned_until < now()) 
+        	AND lang = %s
+        LIMIT %s
 		"""
 	near_stats = db.query_r(query_near, lang, limit)
 	
 
 	query_far = """
-		SELECT 
-			m.group_id,
-			m.amount, 
-			s_ref.title, 
-			s_ref.username, 
-			s.nsfw
-		FROM
-		-- Window function to get only de last_date:
-		    (
-			SELECT 
-				last_members.group_id,
-				last_members.amount
-			FROM
-			    (
-			    SELECT 
-				    *,
-				    ROW_NUMBER() 
-				  	OVER (
-				    PARTITION BY group_id
-				    ORDER BY updated_date DESC) AS row 
-				FROM members
-				WHERE updated_date <= now() - interval %s
-			) AS last_members
-			WHERE last_members.row=1
-			) AS m
-		-- Joins with other tables
-		LEFT JOIN supergroups AS s
-		ON m.group_id = s.group_id
-		LEFT JOIN supergroups_ref AS s_ref
-		ON s.group_id = s_ref.group_id
-		WHERE 
-			(s.banned_until IS NULL OR s.banned_until < now()) 
-			AND lang = %s
-		ORDER BY m.amount DESC, m.group_id DESC
-		LIMIT %s
+        SELECT 
+            members.*,  
+            supergroups_ref.title, 
+            supergroups_ref.username, 
+            extract(epoch from supergroups.joined_the_bot at time zone 'utc') AS dt,
+            supergroups.nsfw,
+            RANK() OVER (PARTITION BY supergroups.lang ORDER BY members.amount DESC)
+        FROM
+        -- Window function to get only de last_date:
+            (SELECT last_members.group_id,last_members.amount
+            FROM
+            (SELECT *, ROW_NUMBER() OVER (PARTITION BY group_id
+            ORDER BY updated_date DESC) AS row FROM members
+            WHERE updated_date <= now() - interval %s
+            ) AS last_members
+            WHERE last_members.row=1) AS members
+        -- Joins with other tables
+        LEFT JOIN supergroups
+        ON members.group_id = supergroups.group_id
+        LEFT JOIN supergroups_ref 
+        ON supergroups.group_id = supergroups_ref.group_id
+        WHERE (supergroups.banned_until IS NULL OR supergroups.banned_until < now()) 
+        	AND lang = %s
+        LIMIT %s
 		"""
 
 	#####################
@@ -120,24 +97,20 @@ def members(far_interval, lang, limit, receiver):
 	far_stats = db.query_r(query_far, far_interval, lang, limit)
 
 	far_list = []
-	count = 0
 	for i in far_stats:
-		count += 1
-		far_list.append([i[0], i[1], i[2], i[3], i[4], count])
+		far_list.append([i[0], i[1], i[2], i[3], i[4], i[6]])
 
 
 	leaderboard_list = []
-	count = 0
 	for i in near_stats:
-		count += 1
 		t_id = i[0]
 		t_id = Leaderboard(
 			tg_id=i[0],
 			value=i[1], 
-			position=count, 
+			position=i[6], 
 			title=i[2], 
 			username=i[3], 
-			nsfw=i[4])
+			nsfw=i[5])
 		for sub_i in far_list:
 			if sub_i[0] == i[0]:
 				t_id.last_value = sub_i[1]
@@ -154,7 +127,7 @@ def members(far_interval, lang, limit, receiver):
 			t_id = Leaderboard(
 				tg_id=i[0],
 				last_value=i[1],
-				last_position=count,
+				last_position=i[5],
 				title=i[2],
 				username=i[3],
 				nsfw=i[4])

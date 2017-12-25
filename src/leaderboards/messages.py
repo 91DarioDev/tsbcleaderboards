@@ -34,24 +34,25 @@ from telegram import Bot
 def messages(near_interval, far_interval, lang, limit, receiver):
 	name_type = 'messages'
 	query_near = """
-		SELECT
-			group_id,
-			COUNT(msg_id) AS leaderboard,
-			s_ref.title,
-			s_ref.username,
-			s.nsfw
-		FROM messages AS m
-		LEFT OUTER JOIN supergroups AS s
-		USING (group_id)
-		LEFT OUTER JOIN supergroups_ref AS s_ref
-		USING (group_id)
-		WHERE
-			m.message_date > (now() - interval %s)
-			AND (s.banned_until IS NULL OR s.banned_until < now()) 
-			AND s.lang = %s
-		GROUP BY group_id, s_ref.title, s_ref.username, s.nsfw
-		ORDER BY leaderboard DESC, group_id DESC
-		LIMIT %s
+        SELECT 
+            m.group_id, 
+            COUNT (m.group_id) AS leaderboard,
+            s_ref.title, 
+            s_ref.username,
+            s.nsfw, 
+            extract(epoch from s.joined_the_bot at time zone 'utc') AS dt,
+            RANK() OVER (PARTITION BY s.lang ORDER BY COUNT(m.group_id) DESC)
+        FROM messages AS m
+        LEFT OUTER JOIN supergroups_ref AS s_ref
+        ON s_ref.group_id = m.group_id
+        LEFT OUTER JOIN supergroups AS s
+        ON s.group_id = m.group_id
+        WHERE m.message_date > %s
+            AND (s.banned_until IS NULL OR s.banned_until < now()) 
+            AND lang = %s
+        GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang
+        ORDER BY leaderboard DESC
+        LIMIT %s
 		"""
 
 
@@ -62,24 +63,25 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 	near_stats  = db.query_r(query_near, near_interval, lang, limit)
 
 	query_far = """
-		SELECT
-			group_id,
-			COUNT(msg_id) AS leaderboard,
-			s_ref.title,
-			s_ref.username,
-			s.nsfw
-		FROM messages AS m
-		LEFT OUTER JOIN supergroups AS s
-		USING (group_id)
-		LEFT OUTER JOIN supergroups_ref AS s_ref
-		USING (group_id)
-		WHERE
-			m.message_date BETWEEN (now() - interval %s) AND (now() - interval %s)
-			AND (s.banned_until IS NULL OR s.banned_until < now()) 
-			AND s.lang = %s
-		GROUP BY group_id, s_ref.title, s_ref.username, s.nsfw
-		ORDER BY leaderboard DESC, group_id DESC
-		LIMIT %s
+        SELECT 
+            m.group_id, 
+            COUNT (m.group_id) AS leaderboard,
+            s_ref.title, 
+            s_ref.username,
+            s.nsfw, 
+            extract(epoch from s.joined_the_bot at time zone 'utc') AS dt,
+            RANK() OVER (PARTITION BY s.lang ORDER BY COUNT(m.group_id) DESC)
+        FROM messages AS m
+        LEFT OUTER JOIN supergroups_ref AS s_ref
+        ON s_ref.group_id = m.group_id
+        LEFT OUTER JOIN supergroups AS s
+        ON s.group_id = m.group_id
+        WHERE m.message_date BETWEEN (now() - interval %s) AND (now() - interval %s)
+            AND (s.banned_until IS NULL OR s.banned_until < now()) 
+            AND lang = %s
+        GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang
+        ORDER BY leaderboard DESC
+        LIMIT %s
 		"""
 
 	far_stats = db.query_r(query_far, far_interval, near_interval, lang, limit)
