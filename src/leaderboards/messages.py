@@ -84,107 +84,66 @@ def messages(near_interval, far_interval, lang, limit, receiver):
         LIMIT %s
 		"""
 
+	
 	far_stats = db.query_r(query_far, far_interval, near_interval, lang, limit)
-	far_list = []
-	count = 0
-	for i in far_stats:
-		count += 1
-		far_list.append([i[0], i[1], i[2], i[3], i[4], i[6]])
-
-
-	leaderboard_list = []
-	count = 0
-	for i in near_stats:
-		count += 1
-		t_id = i[0]
-		t_id = Leaderboard(
-			tg_id=i[0],
-			value=i[1], 
-			position=i[6], 
-			title=i[2], 
-			username=i[3], 
-			nsfw=i[4])
-		for sub_i in far_list:
-			if sub_i[0] == i[0]:
-				t_id.last_value = sub_i[1]
-				t_id.last_position = sub_i[5]
-				break
-		t_id.set_diff_value()
-		leaderboard_list.append(t_id)
-
-
-	out = []
-	id_current = [i.tg_id for i in leaderboard_list]
-	for i in far_list:
-		if i[0] not in id_current:
-			t_id = Leaderboard(
-				tg_id=i[0],
-				last_value=i[1],
-				last_position=i[5],
-				title=i[2],
-				username=i[3],
-				nsfw=i[4])
-			out.append(t_id)
+	
+	near_stats_ids = [i[0] for i in near_stats]
+	far_stats_ids = [i[0] for i in far_stats]
 
 	# GET LIST OF ALREADY JOINED
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
 
+	
 
-	#####################
-	# CREATING THE TEXT
-	#####################
+	message = utils.get_string(lang, "intro_messages") 
+	for i in near_stats:
+		pos = i[6]
+		nsfw = "" if i[4] is False else c.NSFW_E
+		username = i[3]
+		value = i[1]
 
-
-	message = utils.get_string(lang, "intro_messages")
-	for i in leaderboard_list:
-		i.nsfw = "" if i.nsfw is False else c.NSFW_E
-		
-		if str(i.tg_id) not in already_joined:
-			amount = utils.sep_l(i.value, lang)
-			position = c.NEW_E
-			already_joined.append(str(i.tg_id))
-		
-		elif i.last_value is None:
-			amount = utils.sep_l(i.value, lang)
-			position = c.BACK_E
-
+		if str(i[0]) not in already_joined:
+			value = utils.sep_l(value, lang)
+			diff_pos = c.NEW_E
+			already_joined.append(str(i[0]))
 		else:
-			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.diff_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
-			diff_pos = i.position - i.last_position
-			if diff_pos > 0:
-				position = c.UP_POS_E+"+"+str(diff_pos)
-			elif diff_pos < 0:
-				position = c.DOWN_POS_E+str(diff_pos)
-			else:
-				position = ""
+			if i[0] in far_stats_ids:
+				for e in far_stats:
+					if e[0] == i[0]:
+						diff_value = value - e[1]
+						diff_pos = e[6] - pos #pos - e[6]
 
-		message += "{}) {}@{}: {}{}\n".format(
-			i.position, 
-			i.nsfw, 
-			i.username, 
-			amount, 
-			position
-			)
+						value = "<b>"+utils.sep_l(value, lang)+"</b>" if (diff_value >= 0) else "<i>"+utils.sep_l(value, lang)+"</i>"
+						if diff_pos > 0:
+							diff_pos = c.UP_POS_E+"+"+str(diff_pos)
+						elif diff_pos < 0:
+							diff_pos = c.DOWN_POS_E+str(diff_pos)
+						else:
+							diff_pos = ""
+			else:
+				value = utils.sep_l(value, lang)
+				diff_pos = c.BACK_E
+
+		message += "{}) {}@{}: {}{}\n".format(pos, nsfw, username, value, diff_pos)
 
 
 	# SAVE NEW ALREADY JOINED LIST
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
-	
 
 	###############
 	#   GOT OUT
 	###############
 
 	got_out = []
-	for i in out:
-		nsfw = "" if i.nsfw is False else c.NSFW_E
-		element = "{}@{}".format(nsfw, i.username)
-		got_out.append(element)
+	for i in far_stats:
+		if i[0] not in near_stats_ids:
+			nsfw = "" if i[4] is False else c.NSFW_E
+			element = "{}@{}".format(nsfw, i[3])
+			got_out.append(element)
 
 	if len(got_out) > 0:
 		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
-
 
 	#################
 	# SEND MESSAGE
@@ -205,3 +164,4 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			chat_id=config.ADMIN_ID, 
 			document=open(utils.get_name(name_type, lang), 'rb'),
 			disable_notification=True)
+
