@@ -25,3 +25,5 @@ out = "Usciti di classifica: "
 most_increased = "Il più cresciuto: "
 
 most_incr_percent = "Il più cresciuto rispetto al vecchio valore: "
+
+about_you = "Riguardo te"

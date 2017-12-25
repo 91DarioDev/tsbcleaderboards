@@ -20,6 +20,9 @@ This file contains constants
 # You should have received a copy of the GNU General Public License
 # along with TSBCleaderboards.  If not, see <http://www.gnu.org/licenses/>.
 
+from config import config
+from telegram import Bot
+
 
 UP_POS_E = "🔼"
 DOWN_POS_E = "🔽"
@@ -31,3 +34,5 @@ MOST_INCREASED_E = "🔝"
 MOST_INCR_PERCENT_E = "📈"
 MEMBERS_E = "👥"
 MESSAGES_E = "💬"
+
+GET_ME = Bot(config.BOT_TOKEN).getMe()

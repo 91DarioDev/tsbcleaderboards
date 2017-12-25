@@ -22,6 +22,10 @@ import babel
 from babel.numbers import format_decimal
 from resources.langs import en, it
 from config import config
+from src import constants
+
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
 
 lang_obj = {
 	"en": en,
@@ -31,7 +35,6 @@ lang_obj = {
 
 def get_name(name_type, lang):
 	return config.PATH+"already_joined/{}_{}.txt".format(name_type, lang)
-
 
 
 def get_already_joined(name_type, lang):
@@ -65,8 +68,6 @@ def sep(num, none_is_zero=False):
 	return "{:,}".format(num)
 
 
-
-
 def sep_l(num, locale='en', none_is_zero=False):
 	if num is None:
 		return None if none_is_zero is False else 0
@@ -76,9 +77,6 @@ def sep_l(num, locale='en', none_is_zero=False):
 		return babel.numbers.format_decimal(num, locale=locale)
 	except babel.core.UnknownLocaleError:
 		return "{:,}".format(num)
-
-
-
 
 
 def get_string(lang, variable):
@@ -96,3 +94,12 @@ def get_string(lang, variable):
 	except KeyError:
 		string = getattr(en, variable)
 	return string
+
+
+def about_you_kb(lang):
+    button = InlineKeyboardButton(
+            text=get_string(lang, "about_you"),
+            url="https://t.me/{}?start=aboutyou".format(constants.GET_ME.username))
+    buttons_list = [[button]]
+    keyboard = InlineKeyboardMarkup(buttons_list)
+    return keyboard

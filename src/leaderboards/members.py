@@ -218,7 +218,9 @@ def members(far_interval, lang, limit, receiver):
 			chat_id=receiver, 
 			text=message, 
 			parse_mode='HTML',
-			disable_notification=True)
+			disable_notification=True,
+			reply_markup=utils.about_you_kb(lang)
+			)
 	
 
 	###############
