@@ -92,115 +92,82 @@ def members(far_interval, lang, limit, receiver):
 	#####################
 	#  EXTRACTING DATA
 	#####################
-
+############################################à
 
 	far_stats = db.query_r(query_far, far_interval, lang, limit)
 
-	far_list = []
-	for i in far_stats:
-		far_list.append([i[0], i[1], i[2], i[3], i[4], i[6]])
-
-
-	leaderboard_list = []
-	for i in near_stats:
-		t_id = i[0]
-		t_id = Leaderboard(
-			tg_id=i[0],
-			value=i[1], 
-			position=i[6], 
-			title=i[2], 
-			username=i[3], 
-			nsfw=i[5])
-		for sub_i in far_list:
-			if sub_i[0] == i[0]:
-				t_id.last_value = sub_i[1]
-				t_id.last_position = sub_i[5]
-				break
-		t_id.set_diff_value()
-		leaderboard_list.append(t_id)
-
-
-	out = []
-	id_current = [i.tg_id for i in leaderboard_list]
-	for i in far_list:
-		if i[0] not in id_current:
-			t_id = Leaderboard(
-				tg_id=i[0],
-				last_value=i[1],
-				last_position=i[5],
-				title=i[2],
-				username=i[3],
-				nsfw=i[4])
-			out.append(t_id)
-
+	near_stats_ids = [i[0] for i in near_stats]
+	far_stats_ids = [i[0] for i in far_stats]
 
 	# GET LIST OF ALREADY JOINED
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
 
-	#####################
-	# CREATING THE TEXT
-	#####################
+	diff_value_dct = {}
+	usernames_dct = {}
+	nsfw_dct = {}
+	diff_value_percent_dct = {}
+	message = utils.get_string(lang, "intro_members") 
+	for i in near_stats:
+		pos = i[6]
+		nsfw = "" if i[4] is False else c.NSFW_E
+		nsfw_dct[i[0]] = nsfw
+		username = i[3]
+		usernames_dct[i[0]] = username
+		value = i[1]
 
-	message = utils.get_string(lang, "intro_members")
-	for i in leaderboard_list:
-		i.nsfw = "" if i.nsfw is False else c.NSFW_E
-		
-		if str(i.tg_id) not in already_joined:
-			amount = utils.sep_l(i.value, lang)
-			position = c.NEW_E
-			already_joined.append(str(i.tg_id))
-		
-		elif i.last_value is None:
-			amount = utils.sep_l(i.value, lang)
-			position = c.BACK_E
-
+		if str(i[0]) not in already_joined:
+			value = utils.sep_l(value, lang)
+			diff_pos = c.NEW_E
+			already_joined.append(str(i[0]))
 		else:
-			amount = "<b>"+utils.sep_l(i.value, lang)+"</b>" if (i.diff_value >= 0) else "<i>"+utils.sep_l(i.value, lang)+"</i>"
-			diff_pos = i.position - i.last_position
-			if diff_pos > 0:
-				position = c.UP_POS_E+"+"+str(diff_pos)
-			elif diff_pos < 0:
-				position = c.DOWN_POS_E+str(diff_pos)
+			if i[0] in far_stats_ids:
+				for e in far_stats:
+					if e[0] == i[0]:
+						diff_value = value - e[1]
+						diff_pos = e[6] - pos #pos - e[6]
+						diff_value_dct[i[0]] = diff_value
+						diff_value_percent_dct[i[0]] = value-e[1]*100/e[1]
+
+						value = "<b>"+utils.sep_l(value, lang)+"</b>" if (diff_value >= 0) else "<i>"+utils.sep_l(value, lang)+"</i>"
+						if diff_pos > 0:
+							diff_pos = c.UP_POS_E+"+"+str(diff_pos)
+						elif diff_pos < 0:
+							diff_pos = c.DOWN_POS_E+str(diff_pos)
+						else:
+							diff_pos = ""
+
+						break
 			else:
-				position = ""
+				value = utils.sep_l(value, lang)
+				diff_pos = c.BACK_E
 
-		message += "{}) {}@{}: {}{}\n".format(
-			i.position, 
-			i.nsfw, 
-			i.username, 
-			amount, 
-			position)
-
+		message += "{}) {}@{}: {}{}\n".format(pos, nsfw, username, value, diff_pos)
 
 	# SAVE NEW ALREADY JOINED LIST
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)
-	
 
 	###############
 	#   GOT OUT
 	###############
 
 	got_out = []
-	for i in out:
-		nsfw = "" if i.nsfw is False else c.NSFW_E
-		element = "{}@{}".format(nsfw, i.username)
-		got_out.append(element)
+	for i in far_stats:
+		if i[0] not in near_stats_ids:
+			nsfw = "" if i[4] is False else c.NSFW_E
+			element = "{}@{}".format(nsfw, i[3])
+			got_out.append(element)
 
 	if len(got_out) > 0:
 		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
 
+	##################
+	# MOST INCREASED #
+	##################
 
-	lst = [i for i in leaderboard_list if i.diff_value is not None]
-
-	#################
-	# MOST INCREASED
-	#################
-
-	
 	try:
-		max_value = max([e.diff_value for e in lst])
-		most_increased = [i for i in leaderboard_list if i.diff_value == max_value]
+		max_value = max(diff_pos_dct.values())
+		most_increased = [i for i in diff_value_dct if diff_value_dct[i] == max_value]
 	except ValueError:  # the list is empty
 		most_increased = []
 
@@ -209,24 +176,23 @@ def members(far_interval, lang, limit, receiver):
 		strings = []
 		for i in most_increased:
 			string = "{}@{}({})".format(
-					"" if i.nsfw is False else c.NSFW_E,
-					i.username,
-					utils.sep_l(i.diff_value, lang))
+					nsfw_dct[i],
+					usernames_dct[i],
+					utils.sep_l(max_value, lang))
 			strings.append(string)
 		message += '\n\n{}<b>{}</b>'.format(
 				c.MOST_INCREASED_E, 
 				utils.get_string(lang, 'most_increased'))
-		message += ', '.join(strings)
+		message += ', '.join(strings)	
 
 	
-
 	##########################
-	# MOST INCREASED PERCENT
+	# MOST INCREASED PERCENT #
 	##########################
 
 	try:
-		max_value = max([e.diff_percent for e in lst])
-		most_incr_percent = [i for i in leaderboard_list if i.diff_percent == max_value]
+		max_value = max(diff_value_percent_dct.values())
+		most_incr_percent = [i for i in diff_value_percent_dct if i.diff_value_percent_dct[i] == max_value]
 	except ValueError:
 		most_incr_percent = []
 
@@ -234,17 +200,14 @@ def members(far_interval, lang, limit, receiver):
 		strings = []
 		for i in most_incr_percent:
 			string = "{}@{}({}%)".format(
-					"" if i.nsfw is False else c.NSFW_E,
-					i.username,
-					round(i.diff_percent, 2))
+					nsfw_dct[i],
+					usernames_dct[i],
+					round(max_value, 2))
 			strings.append(string)
 		message += '\n\n{}<b>{}</b>'.format(
 				c.MOST_INCR_PERCENT_E, 
 				utils.get_string(lang, 'most_incr_percent'))
 		message += ', '.join(strings)
-
-
-
 
 
 	#################
@@ -266,3 +229,4 @@ def members(far_interval, lang, limit, receiver):
 			chat_id=config.ADMIN_ID, 
 			document=open(utils.get_name(name_type, lang), 'rb'),
 			disable_notification=True)
+

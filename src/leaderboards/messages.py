@@ -120,6 +120,8 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 							diff_pos = c.DOWN_POS_E+str(diff_pos)
 						else:
 							diff_pos = ""
+
+						break
 			else:
 				value = utils.sep_l(value, lang)
 				diff_pos = c.BACK_E
