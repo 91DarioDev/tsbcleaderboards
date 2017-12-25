@@ -21,6 +21,7 @@
 import babel
 from babel.numbers import format_decimal
 from resources.langs import en, it
+from config import config
 
 lang_obj = {
 	"en": en,
@@ -29,7 +30,7 @@ lang_obj = {
 
 
 def get_name(name_type, lang):
-	return "already_joined/{}_{}.txt".format(name_type, lang)
+	return config.PATH+"already_joined/{}_{}.txt".format(name_type, lang)
 
 
 
@@ -48,8 +49,9 @@ def get_already_joined(name_type, lang):
 
 
 def save_already_joined(name_type, lang, to_save):
+	file_name = get_name(name_type, lang)
 	try:
-		file = open(get_name(name_type, lang), 'w')
+		file = open(file_name, 'w')
 		file.write('\n'.join(to_save))
 	except Exception as e:
 		print(e)
