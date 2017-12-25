@@ -109,7 +109,7 @@ def members(far_interval, lang, limit, receiver):
 	message = utils.get_string(lang, "intro_members") 
 	for i in near_stats:
 		pos = i[6]
-		nsfw = "" if i[4] is False else c.NSFW_E
+		nsfw = "" if i[5] is False else c.NSFW_E
 		nsfw_dct[i[0]] = nsfw
 		username = i[3]
 		usernames_dct[i[0]] = username
@@ -126,7 +126,7 @@ def members(far_interval, lang, limit, receiver):
 						diff_value = value - e[1]
 						diff_pos = e[6] - pos #pos - e[6]
 						diff_value_dct[i[0]] = diff_value
-						diff_value_percent_dct[i[0]] = value-e[1]*100/e[1]
+						diff_value_percent_dct[i[0]] = (value-e[1])*100/e[1]
 
 						value = "<b>"+utils.sep_l(value, lang)+"</b>" if (diff_value >= 0) else "<i>"+utils.sep_l(value, lang)+"</i>"
 						if diff_pos > 0:
@@ -166,7 +166,7 @@ def members(far_interval, lang, limit, receiver):
 	##################
 
 	try:
-		max_value = max(diff_pos_dct.values())
+		max_value = max(diff_value_dct.values())
 		most_increased = [i for i in diff_value_dct if diff_value_dct[i] == max_value]
 	except ValueError:  # the list is empty
 		most_increased = []
@@ -192,7 +192,7 @@ def members(far_interval, lang, limit, receiver):
 
 	try:
 		max_value = max(diff_value_percent_dct.values())
-		most_incr_percent = [i for i in diff_value_percent_dct if i.diff_value_percent_dct[i] == max_value]
+		most_incr_percent = [i for i in diff_value_percent_dct if diff_value_percent_dct[i] == max_value]
 	except ValueError:
 		most_incr_percent = []
 
