@@ -141,7 +141,7 @@ def members(far_interval, lang, limit, receiver):
 				value = utils.sep_l(value, lang)
 				diff_pos = c.BACK_E
 
-		message += "{}) {}@{}: {}{}\n".format(pos, nsfw, username, value, diff_pos)
+		message += "{}) {}@{} {} {}{}\n".format(pos, nsfw, username, c.MEMBERS_E, value, diff_pos)
 
 	# SAVE NEW ALREADY JOINED LIST
 	utils.save_already_joined(name_type=name_type, lang=lang, to_save=already_joined)

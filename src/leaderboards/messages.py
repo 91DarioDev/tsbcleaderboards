@@ -126,7 +126,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 				value = utils.sep_l(value, lang)
 				diff_pos = c.BACK_E
 
-		message += "{}) {}@{}: {}{}\n".format(pos, nsfw, username, value, diff_pos)
+		message += "{}) {}@{} {} {}{}\n".format(pos, nsfw, username, c.MESSAGES_E, value, diff_pos)
 
 
 	# SAVE NEW ALREADY JOINED LIST
