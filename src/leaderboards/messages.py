@@ -47,7 +47,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
         ON s_ref.group_id = m.group_id
         LEFT OUTER JOIN supergroups AS s
         ON s.group_id = m.group_id
-        WHERE m.message_date > %s
+        WHERE m.message_date > (now() - interval %s)
             AND (s.banned_until IS NULL OR s.banned_until < now()) 
             AND lang = %s
         GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang
@@ -89,7 +89,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 	count = 0
 	for i in far_stats:
 		count += 1
-		far_list.append([i[0], i[1], i[2], i[3], i[4], count])
+		far_list.append([i[0], i[1], i[2], i[3], i[4], i[6]])
 
 
 	leaderboard_list = []
@@ -100,7 +100,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 		t_id = Leaderboard(
 			tg_id=i[0],
 			value=i[1], 
-			position=count, 
+			position=i[6], 
 			title=i[2], 
 			username=i[3], 
 			nsfw=i[4])
@@ -120,7 +120,7 @@ def messages(near_interval, far_interval, lang, limit, receiver):
 			t_id = Leaderboard(
 				tg_id=i[0],
 				last_value=i[1],
-				last_position=count,
+				last_position=i[5],
 				title=i[2],
 				username=i[3],
 				nsfw=i[4])
