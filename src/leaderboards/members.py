@@ -153,7 +153,7 @@ def members(far_interval, lang, limit, receiver):
 	got_out = []
 	for i in far_stats:
 		if i[0] not in near_stats_ids:
-			nsfw = "" if i[4] is False else c.NSFW_E
+			nsfw = "" if i[5] is False else c.NSFW_E
 			element = "{}@{}".format(nsfw, i[3])
 			got_out.append(element)
 
