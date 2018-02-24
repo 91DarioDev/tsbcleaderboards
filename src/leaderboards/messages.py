@@ -50,7 +50,8 @@ def messages(near_interval, far_interval, lang, limit, receiver):
         WHERE m.message_date > (now() - interval %s)
             AND (s.banned_until IS NULL OR s.banned_until < now()) 
             AND lang = %s
-        GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang
+            AND s.bot_inside IS TRUE
+        GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang, s.bot_inside
         ORDER BY leaderboard DESC
         LIMIT %s
 		"""
@@ -79,7 +80,8 @@ def messages(near_interval, far_interval, lang, limit, receiver):
         WHERE m.message_date BETWEEN (now() - interval %s) AND (now() - interval %s)
             AND (s.banned_until IS NULL OR s.banned_until < now()) 
             AND lang = %s
-        GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang
+            AND s.bot_inside IS TRUE
+        GROUP BY m.group_id, s_ref.title, s_ref.username, s.nsfw, dt, s.banned_until, s.lang, s.bot_inside
         ORDER BY leaderboard DESC
         LIMIT %s
 		"""

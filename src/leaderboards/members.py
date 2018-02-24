@@ -57,6 +57,7 @@ def members(far_interval, lang, limit, receiver):
         ON supergroups.group_id = supergroups_ref.group_id
         WHERE (supergroups.banned_until IS NULL OR supergroups.banned_until < now()) 
         	AND lang = %s
+        	AND supergroups.bot_inside IS TRUE
         LIMIT %s
 		"""
 	near_stats = db.query_r(query_near, lang, limit)
@@ -86,6 +87,7 @@ def members(far_interval, lang, limit, receiver):
         ON supergroups.group_id = supergroups_ref.group_id
         WHERE (supergroups.banned_until IS NULL OR supergroups.banned_until < now()) 
         	AND lang = %s
+        	AND supergroups.bot_inside IS TRUE
         LIMIT %s
 		"""
 
