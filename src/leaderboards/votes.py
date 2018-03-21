@@ -45,7 +45,9 @@ def votes(interval, lang, limit, receiver, min_reviews):
         FROM votes 
         LEFT OUTER JOIN supergroups AS s 
         USING (group_id)
-        GROUP BY group_id, s.lang, s.banned_until, s.bot_inside
+        LEFT OUTER JOIN supergroups_ref AS s_ref
+        USING (group_id)
+        GROUP BY group_id, s.lang, s.banned_until, s.bot_inside, s.nsfw, s_ref.username
         HAVING 
             (s.banned_until IS NULL OR s.banned_until < now()) 
             AND s.lang = %s
@@ -72,8 +74,10 @@ def votes(interval, lang, limit, receiver, min_reviews):
         FROM votes
         LEFT OUTER JOIN supergroups AS s 
         USING (group_id)
+        LEFT OUTER JOIN supergroups_ref AS s_ref
+        USING (group_id)
         WHERE vote_date <= now() - interval %s
-        GROUP BY group_id, s.lang, s.banned_until, s.bot_inside
+        GROUP BY group_id, s.lang, s.banned_until, s.bot_inside, s.nsfw, s_ref.username
         HAVING 
             (s.banned_until IS NULL OR s.banned_until < now())
             AND s.lang = %s
@@ -110,7 +114,7 @@ def votes(interval, lang, limit, receiver, min_reviews):
 				for e in far_stats:
 					if e[0] == i[0]:
 						diff_value = value - e[1]
-						diff_pos = e[6] - pos #pos - e[6]
+						diff_pos = e[3] - pos #pos - e[6]
 
 						value = "<b>"+utils.sep_l(value, lang)+"</b>" if (diff_value >= 0) else "<i>"+utils.sep_l(value, lang)+"</i>"
 						if diff_pos > 0:
@@ -125,7 +129,7 @@ def votes(interval, lang, limit, receiver, min_reviews):
 				value = utils.sep_l(value, lang)
 				diff_pos = c.BACK_E
 
-		message += "{}) {}@{} {} {}{}({}){}\n".format(pos, nsfw, username, c.MESSAGES_E, value, c.STAR_E, utils.sep_l(amount_of_votes, lang), diff_pos)
+		message += "{}) {}@{}  {}{}({}){}\n".format(pos, nsfw, username, value, c.STAR_E, utils.sep_l(amount_of_votes, lang), diff_pos)
 
 
 	# SAVE NEW ALREADY JOINED LIST
