@@ -96,7 +96,10 @@ def votes(interval, lang, limit, receiver, min_reviews):
 	already_joined = utils.get_already_joined(name_type=name_type, lang=lang)
 
 	
-
+	diff_value_dct = {}
+	usernames_dct = {}
+	nsfw_dct = {}
+	diff_value_percent_dct = {}
 	message = utils.get_string(lang, "intro_votes") 
 	for i in near_stats:
 		pos = i[3]
@@ -104,6 +107,9 @@ def votes(interval, lang, limit, receiver, min_reviews):
 		username = i[5]
 		value = i[2]
 		amount_of_votes = i[1]
+		usernames_dct[i[0]] = username
+		nsfw_dct[i[0]] = nsfw
+
 
 		if str(i[0]) not in already_joined:
 			value = utils.sep_l(value, lang)
@@ -113,8 +119,10 @@ def votes(interval, lang, limit, receiver, min_reviews):
 			if i[0] in far_stats_ids:
 				for e in far_stats:
 					if e[0] == i[0]:
-						diff_value = value - e[1]
-						diff_pos = e[3] - pos #pos - e[6]
+						diff_value = value - e[2]
+						diff_pos = e[3] - pos #pos - e[3]
+						diff_value_dct[i[0]] = diff_value
+						diff_value_percent_dct[i[0]] = (value-e[2])*100/e[2]
 
 						value = "<b>"+utils.sep_l(value, lang)+"</b>" if (diff_value >= 0) else "<i>"+utils.sep_l(value, lang)+"</i>"
 						if diff_pos > 0:
@@ -149,6 +157,65 @@ def votes(interval, lang, limit, receiver, min_reviews):
 	if len(got_out) > 0:
 		message += "\n\n{}<b>{}</b>".format(c.BASKET_E, utils.get_string(lang, "out"))
 		message += ', '.join(got_out)
+
+
+
+
+
+
+	##################
+	# MOST INCREASED #
+	##################
+
+	try:
+		max_value = max(diff_value_dct.values())
+		most_increased = [i for i in diff_value_dct if diff_value_dct[i] == max_value]
+	except ValueError:  # the list is empty
+		most_increased = []
+
+
+	if len(most_increased) > 0:
+		strings = []
+		for i in most_increased:
+			string = "{}@{}({})".format(
+					nsfw_dct[i],
+					usernames_dct[i],
+					utils.sep_l(max_value, lang))
+			strings.append(string)
+		message += '\n\n{}<b>{}</b>'.format(
+				c.MOST_INCREASED_E, 
+				utils.get_string(lang, 'most_increased'))
+		message += ', '.join(strings)	
+
+	
+	##########################
+	# MOST INCREASED PERCENT #
+	##########################
+
+	try:
+		max_value = max(diff_value_percent_dct.values())
+		most_incr_percent = [i for i in diff_value_percent_dct if diff_value_percent_dct[i] == max_value]
+	except ValueError:
+		most_incr_percent = []
+
+	if len(most_incr_percent) > 0:
+		strings = []
+		for i in most_incr_percent:
+			string = "{}@{}({}%)".format(
+					nsfw_dct[i],
+					usernames_dct[i],
+					round(max_value, 2))
+			strings.append(string)
+		message += '\n\n{}<b>{}</b>'.format(
+				c.MOST_INCR_PERCENT_E, 
+				utils.get_string(lang, 'most_incr_percent'))
+		message += ', '.join(strings)
+
+
+
+
+
+
 
 	#################
 	# SEND MESSAGE
