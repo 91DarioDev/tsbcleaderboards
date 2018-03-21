@@ -34,5 +34,6 @@ MOST_INCREASED_E = "🔝"
 MOST_INCR_PERCENT_E = "📈"
 MEMBERS_E = "👥"
 MESSAGES_E = "💬"
+STAR_E = "⭐️"
 
 GET_ME = Bot(config.BOT_TOKEN).getMe()

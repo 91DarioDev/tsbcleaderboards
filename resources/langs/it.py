@@ -18,6 +18,8 @@
 
 intro_messages = "Primi 50 gruppi che hanno scambiato più messaggi negli ultimi 7 giorni.\n\n"
 
+intro_votes = "Primi 50 gruppi con la media voti più alta.\n\n"
+
 intro_members = "Primi 50 gruppi più numerosi.\n\n"
 
 out = "Usciti di classifica: "

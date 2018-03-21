@@ -35,3 +35,9 @@ members.members(far_interval='7 days',
 		lang='it', 
 		limit=50,
 		receiver=1234567890)
+
+members.votes(interval='7 days', 
+		lang='it', 
+		limit=50,
+		min_reviews=10,
+		receiver=1234567890)
