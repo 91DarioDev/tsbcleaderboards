@@ -22,7 +22,7 @@ this is an example of how to launch a leaderboard
 
 
 
-from src.leaderboards import messages, members
+from src.leaderboards import messages, members, votes
 import config
 
 messages.messages(near_interval='7 days', 
