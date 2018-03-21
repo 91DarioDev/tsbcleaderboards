@@ -5,7 +5,7 @@ This file contains constants
 # TSBCleaderboards - An extension of TopSupergroupsBot to post leaderboards 
 # on a channel on intervals
 #
-# Copyright (C) 2017  Dario <dariomsn@hotmail.it> (github.com/91DarioDev)
+# Copyright (C) 2017-2018  Dario <dariomsn@hotmail.it> (github.com/91DarioDev)
 #
 # TSBCleaderboards is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
