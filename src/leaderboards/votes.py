@@ -113,6 +113,7 @@ def votes(interval, lang, limit, receiver, min_reviews):
         ON s_ref.group_id = v.group_id
         LEFT OUTER JOIN supergroups AS s
         ON s.group_id = v.group_id
+        WHERE vote_date <= now() - interval %s
         GROUP BY s.banned_until, s.bot_inside, s.lang
         HAVING 
               (s.banned_until IS NULL OR s.banned_until < now()) 
@@ -159,6 +160,7 @@ def votes(interval, lang, limit, receiver, min_reviews):
 
 	far_stats = db.query_r(
 		query_far, 
+		interval,
 		min_reviews,
 		min_reviews,
 		min_reviews,
