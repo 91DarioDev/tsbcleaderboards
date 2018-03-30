@@ -35,25 +35,56 @@ from telegram import Bot
 def votes(interval, lang, limit, receiver, min_reviews):
 	name_type = 'votes'
 	query_near = """
-        SELECT
-            group_id,
-            COUNT(vote) AS amount,
-            ROUND(AVG(vote), 1) AS average, 
-            RANK() OVER(PARTITION BY s.lang ORDER BY ROUND(AVG(VOTE), 1)DESC, COUNT(VOTE)DESC),
-            s.nsfw,
-            s_ref.username
-        FROM votes 
-        LEFT OUTER JOIN supergroups AS s 
-        USING (group_id)
+        WITH myconst AS
+        (SELECT 
+              s.lang,
+              AVG(vote)::float AS overall_avg
+        FROM votes AS v
         LEFT OUTER JOIN supergroups_ref AS s_ref
-        USING (group_id)
-        GROUP BY group_id, s.lang, s.banned_until, s.bot_inside, s.nsfw, s_ref.username
+        ON s_ref.group_id = v.group_id
+        LEFT OUTER JOIN supergroups AS s
+        ON s.group_id = v.group_id
+        GROUP BY s.banned_until, s.bot_inside, s.lang
         HAVING 
-            (s.banned_until IS NULL OR s.banned_until < now()) 
-            AND s.lang = %s
-            AND COUNT(vote) >= %s 
-            AND s.bot_inside IS TRUE
-        LIMIT %s
+              (s.banned_until IS NULL OR s.banned_until < now()) 
+              AND COUNT(vote) >= %s
+              AND s.bot_inside IS TRUE)
+
+        SELECT 
+          *,
+          RANK() OVER (PARTITION BY sub.lang  ORDER BY bayesan DESC)
+          FROM (
+            SELECT 
+                v.group_id,
+                s_ref.title, 
+                s_ref.username, 
+                COUNT(vote) AS amount, 
+                ROUND(AVG(vote), 1)::float AS average,
+                s.nsfw,
+                extract(epoch from s.joined_the_bot at time zone 'utc') AS dt,
+                s.lang,
+                s.category,
+                -- (WR) = (v ÷ (v+m)) × R + (m ÷ (v+m)) × C
+                --    * R = average for the movie (mean) = (Rating)
+                --    * v = number of votes for the movie = (votes)
+                --    * m = minimum votes required to be listed in the Top 250 (currently 1300)
+                --    * C = the mean vote across the whole report (currently 6.8)
+                (  (COUNT(vote)::float / (COUNT(vote)+%s)) * AVG(vote)::float + (%s::float / (COUNT(vote)+%s)) * (m.overall_avg) ) AS bayesan
+            FROM votes AS v
+            LEFT OUTER JOIN supergroups_ref AS s_ref
+            ON s_ref.group_id = v.group_id
+            LEFT OUTER JOIN supergroups AS s
+            ON s.group_id = v.group_id
+            LEFT OUTER JOIN myconst AS m
+            ON (s.lang = m.lang)
+            GROUP BY v.group_id, s_ref.title, s_ref.username, s.nsfw, s.banned_until, s.lang, s.category, s.bot_inside, s.joined_the_bot, m.overall_avg
+            HAVING 
+                (s.banned_until IS NULL OR s.banned_until < now()) 
+                AND COUNT(vote) >= %s
+                AND s.lang = %s
+                AND s.bot_inside IS TRUE
+          ) AS sub
+          LIMIT %s;
     """
 
 
@@ -61,33 +92,82 @@ def votes(interval, lang, limit, receiver, min_reviews):
 	#  EXTRACTING DATA
 	#####################
 
-	near_stats  = db.query_r(query_near, lang, min_reviews, limit)
+	near_stats  = db.query_r(
+		query_near, 
+		min_reviews,
+		min_reviews,
+		min_reviews,
+		min_reviews,
+		min_reviews,
+		lang,
+		limit
+	)
 
 	query_far = """
-        SELECT 
-            group_id,
-            COUNT(vote) AS amount,
-            ROUND(AVG(vote), 1) AS average, 
-            RANK() OVER(PARTITION BY s.lang ORDER BY ROUND(AVG(VOTE), 1)DESC, COUNT(VOTE)DESC),
-            s.nsfw,
-            s_ref.username
-        FROM votes
-        LEFT OUTER JOIN supergroups AS s 
-        USING (group_id)
+        WITH myconst AS
+        (SELECT 
+              s.lang,
+              AVG(vote)::float AS overall_avg
+        FROM votes AS v
         LEFT OUTER JOIN supergroups_ref AS s_ref
-        USING (group_id)
-        WHERE vote_date <= now() - interval %s
-        GROUP BY group_id, s.lang, s.banned_until, s.bot_inside, s.nsfw, s_ref.username
+        ON s_ref.group_id = v.group_id
+        LEFT OUTER JOIN supergroups AS s
+        ON s.group_id = v.group_id
+        GROUP BY s.banned_until, s.bot_inside, s.lang
         HAVING 
-            (s.banned_until IS NULL OR s.banned_until < now())
-            AND s.lang = %s
-            AND COUNT(vote) >= %s 
-            AND s.bot_inside IS TRUE
-        LIMIT %s
+              (s.banned_until IS NULL OR s.banned_until < now()) 
+              AND COUNT(vote) >= %s
+              AND s.bot_inside IS TRUE)
+
+        SELECT 
+          *,
+          RANK() OVER (PARTITION BY sub.lang  ORDER BY bayesan DESC)
+          FROM (
+            SELECT 
+                v.group_id,
+                s_ref.title, 
+                s_ref.username, 
+                COUNT(vote) AS amount, 
+                ROUND(AVG(vote), 1)::float AS average,
+                s.nsfw,
+                extract(epoch from s.joined_the_bot at time zone 'utc') AS dt,
+                s.lang,
+                s.category,
+                -- (WR) = (v ÷ (v+m)) × R + (m ÷ (v+m)) × C
+                --    * R = average for the movie (mean) = (Rating)
+                --    * v = number of votes for the movie = (votes)
+                --    * m = minimum votes required to be listed in the Top 250 (currently 1300)
+                --    * C = the mean vote across the whole report (currently 6.8)
+                (  (COUNT(vote)::float / (COUNT(vote)+%s)) * AVG(vote)::float + (%s::float / (COUNT(vote)+%s)) * (m.overall_avg) ) AS bayesan
+            FROM votes AS v
+            LEFT OUTER JOIN supergroups_ref AS s_ref
+            ON s_ref.group_id = v.group_id
+            LEFT OUTER JOIN supergroups AS s
+            ON s.group_id = v.group_id
+            LEFT OUTER JOIN myconst AS m
+            ON (s.lang = m.lang)
+            WHERE vote_date <= now() - interval %s
+            GROUP BY v.group_id, s_ref.title, s_ref.username, s.nsfw, s.banned_until, s.lang, s.category, s.bot_inside, s.joined_the_bot, m.overall_avg
+            HAVING 
+                (s.banned_until IS NULL OR s.banned_until < now()) 
+                AND COUNT(vote) >= %s
+                AND s.lang = %s
+                AND s.bot_inside IS TRUE
+          ) AS sub
+          LIMIT %s;
     """
 
-	
-	far_stats = db.query_r(query_far, interval, lang, min_reviews, limit)
+	far_stats = db.query_r(
+		query_far, 
+		min_reviews,
+		min_reviews,
+		min_reviews,
+		min_reviews,
+		interval,
+		min_reviews,
+		lang,
+		limit
+	)
 	
 	near_stats_ids = [i[0] for i in near_stats]
 	far_stats_ids = [i[0] for i in far_stats]
@@ -102,11 +182,11 @@ def votes(interval, lang, limit, receiver, min_reviews):
 	diff_value_percent_dct = {}
 	message = utils.get_string(lang, "intro_votes") 
 	for i in near_stats:
-		pos = i[3]
-		nsfw = "" if i[4] is False else c.NSFW_E
-		username = i[5]
-		value = i[2]
-		amount_of_votes = i[1]
+		pos = i[10]
+		nsfw = "" if i[5] is False else c.NSFW_E
+		username = i[2]
+		value = i[4]
+		amount_of_votes = i[3]
 		usernames_dct[i[0]] = username
 		nsfw_dct[i[0]] = nsfw
 
@@ -119,10 +199,10 @@ def votes(interval, lang, limit, receiver, min_reviews):
 			if i[0] in far_stats_ids:
 				for e in far_stats:
 					if e[0] == i[0]:
-						diff_value = value - e[2]
-						diff_pos = e[3] - pos #pos - e[3]
+						diff_value = value - e[4]
+						diff_pos = e[10] - pos #pos - e[3]
 						diff_value_dct[i[0]] = diff_value
-						diff_value_percent_dct[i[0]] = (value-e[2])*100/e[2]
+						diff_value_percent_dct[i[0]] = (value-e[4])*100/e[4]
 
 						value = "<b>"+utils.sep_l(value, lang)+"</b>" if (diff_value >= 0) else "<i>"+utils.sep_l(value, lang)+"</i>"
 						if diff_pos > 0:
@@ -150,8 +230,8 @@ def votes(interval, lang, limit, receiver, min_reviews):
 	got_out = []
 	for i in far_stats:
 		if i[0] not in near_stats_ids:
-			nsfw = "" if i[4] is False else c.NSFW_E
-			element = "{}@{}".format(nsfw, i[5])
+			nsfw = "" if i[5] is False else c.NSFW_E
+			element = "{}@{}".format(nsfw, i[2])
 			got_out.append(element)
 
 	if len(got_out) > 0:
@@ -169,7 +249,7 @@ def votes(interval, lang, limit, receiver, min_reviews):
 
 	try:
 		max_value = max(diff_value_dct.values())
-		most_increased = [i for i in diff_value_dct if diff_value_dct[i] == max_value]
+		most_increased = [i for i in diff_value_dct if (diff_value_dct[i] == max_value and max_value > 0)]
 	except ValueError:  # the list is empty
 		most_increased = []
 
@@ -194,7 +274,7 @@ def votes(interval, lang, limit, receiver, min_reviews):
 
 	try:
 		max_value = max(diff_value_percent_dct.values())
-		most_incr_percent = [i for i in diff_value_percent_dct if diff_value_percent_dct[i] == max_value]
+		most_incr_percent = [i for i in diff_value_percent_dct if (diff_value_percent_dct[i] == max_value and max_value > 0)]
 	except ValueError:
 		most_incr_percent = []
 
